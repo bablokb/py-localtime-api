@@ -85,4 +85,13 @@ Additions
 One additional field is supplied: struct_time. With this field, the
 creation of a `time.struct_time`-object from within Python is possible
 without parsing any of the other fields. Just convert the content of
-the field to a tuple and pass it to `time.struct_time()`.
+the field to a tuple and pass it to `time.struct_time()`, e.g.:
+
+
+    if 'struct_time' in response:
+      rtc.RTC().datetime = time.struct_time(tuple(response['struct_time']))
+    else:
+      # traditional parsing of worldtimeapi.org response-fields
+      ...
+
+This snippet updates the time of the internal RTC (CircuitPython example).
