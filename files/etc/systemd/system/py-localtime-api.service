@@ -1,0 +1,22 @@
+# --------------------------------------------------------------------------
+# Systemd service Definition for py-localtime-api.service.
+#
+# The service just starts the script /usr/local/sbin/py-localtime-api.py
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/py-localtime-api
+#
+# --------------------------------------------------------------------------
+
+[Unit]
+Description=Localtime API server
+ 
+[Service]
+Type=simple
+User=localtime
+ExecStart=/usr/local/sbin/py-localtime-api.py
+
+[Install]
+WantedBy=network.target

@@ -1,0 +1,78 @@
+#!/bin/bash
+# --------------------------------------------------------------------------
+# This script installs files and services specific to this project.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/py-localtime-api
+#
+# --------------------------------------------------------------------------
+
+PROJECT="py-localtime-api"
+PACKAGES="python3-tz"
+
+# --- install additioanl packages   -----------------------------------------
+
+install_packages() {
+  if [ -n "$PACKAGES" ]; then
+    apt-get update
+    apt-get -y install $PACKAGES
+  fi
+}
+
+# --- install specific files   ----------------------------------------------
+
+install_files() {
+  echo -e "[INFO] installing project files" 2>&1
+
+  rand="$RANDOM"
+  if [ -f "/etc/${PROJECT}.json" ]; then
+    # save current configuration
+    mv "/etc/${PROJECT}.json" "/etc/${PROJECT}.json.$rand"
+  fi
+
+  for f in `find $(dirname "$0")/../files/ -type f -not -name "*.pyc"`; do
+    target="${f#*files}"
+    target_dir="${target%/*}"
+    [ ! -d "$target_dir" ] && mkdir -p "$target_dir"
+    cp "$f" "$target"
+    chown root:root "$target"
+  done
+  chmod 755 "/usr/local/sbin/$PROJECT.py"
+
+  # restore old configuration
+  if [ -f "/etc/${PROJECT}.json.$rand" ]; then
+    mv -f "/etc/${PROJECT}.json" "/etc/${PROJECT}.json.new"
+    mv "/etc/${PROJECT}.json.$rand" "/etc/${PROJECT}.json"
+    echo -e "[INFO] new version of configuration file saved to: /etc/${PROJECT}.json.new" 2>&1
+  fi
+}
+
+# --- configure system   ----------------------------------------------------
+
+configure_system() {
+  if ! grep -q "localtime" /etc/passwd; then
+    echo -e "[INFO] create system-user localtime:localtime" 2>&1
+    groupadd -r localtime
+    adduser --disabled-login --gecos "" --system --group \
+                                        --home /var/lib/localtime localtime
+  fi
+}
+
+# --- activate service   ----------------------------------------------------
+
+enable_services() {
+  echo -e "[INFO] enabling $PROJECT.service" 2>&1
+  systemctl enable "$PROJECT.service"
+}
+
+# --- main program   --------------------------------------------------------
+
+install_packages
+install_files
+configure_system
+enable_services
+
+echo "[INFO] installation completed"
+echo "[INFO] edit /etc/$PROJECT.json and start $PROJECT.service"
