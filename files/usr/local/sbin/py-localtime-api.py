@@ -33,10 +33,18 @@
 #
 # ----------------------------------------------------------------------------
 
-import locale, datetime, http.server, json, signal, sys, pytz
+CONFIG_FILE = "py-localtime-api.json"
 
-CONFIG_FILE = "/etc/py-localtime-api.json"
-with open(CONFIG_FILE,"r") as f:
+import locale, datetime, http.server, json, signal, os, sys, pytz
+
+# for testing: use the config-file from the repo
+config_file = os.path.join(
+  os.path.dirname(sys.argv[0]),"..","..","..","etc",CONFIG_FILE)
+
+if not os.path.exists(config_file):
+  config_file = os.path.join("/etc",CONFIG_FILE)
+
+with open(config_file,"r") as f:
   SETTINGS = json.load(f)
 
 # --- handler class   --------------------------------------------------------
@@ -101,4 +109,5 @@ if __name__ == '__main__':
   signal.signal(signal.SIGINT,  signal_handler)
 
   httpd = http.server.HTTPServer(('',SETTINGS["PORT"]),LocalTimeApi)
+  print("running LocalTimeApi-Server on: 0.0.0.0:%d" % SETTINGS["PORT"])
   httpd.serve_forever()
